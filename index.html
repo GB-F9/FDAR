@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FDAR Charting · Nurse Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Literata:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2330;
+  --surface3: #21262d;
+  --border: #30363d;
+  --border2: #3d444d;
+  --teal: #2dd4bf;
+  --teal-dim: rgba(45,212,191,0.12);
+  --teal-dim2: rgba(45,212,191,0.06);
+  --red: #f85149;
+  --red-dim: rgba(248,81,73,0.12);
+  --blue: #58a6ff;
+  --blue-dim: rgba(88,166,255,0.1);
+  --green: #3fb950;
+  --green-dim: rgba(63,185,80,0.1);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.1);
+  --purple-border: rgba(167,139,250,0.25);
+  --text: #e6edf3;
+  --text2: #8b949e;
+  --text3: #6e7681;
+  --white: #ffffff;
+  --F: #f0b429;
+  --D: #58a6ff;
+  --A: #3fb950;
+  --R: #2dd4bf;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { font-size: 15px; }
+body {
+  font-family: 'Literata', serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* TOP BAR */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 18px 12px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon {
+  width: 34px; height: 34px; background: var(--teal);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.brand-name { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+.brand-name span { color: var(--teal); }
+.brand-sub { font-size: 9px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: -1px; }
+.count-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  background: var(--teal-dim); color: var(--teal);
+  border: 1px solid rgba(45,212,191,0.25); padding: 3px 10px; border-radius: 20px;
+}
+
+/* TABS */
+.tabs {
+  display: flex; background: var(--surface);
+  border-bottom: 1px solid var(--border); padding: 0 18px;
+}
+.tab {
+  flex: 1; padding: 10px 0;
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text3); background: none; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;
+}
+.tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+/* VIEWS */
+.view { display: none; }
+.view.active { display: block; }
+
+/* FORM */
+.form-wrap { padding: 18px; }
+.patient-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label {
+  font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3);
+}
+.field input, .field select, .field textarea {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; color: var(--text);
+  font-family: 'Literata', serif; font-size: 14px; outline: none;
+  transition: border-color 0.2s; resize: none;
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--text3); }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--teal); background: var(--surface3); }
+.field select option { background: var(--surface2); }
+
+/* SECTION HEADER */
+.section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; margin-top: 4px; }
+.section-label { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--purple); }
+.section-line { flex: 1; height: 1px; background: linear-gradient(to right, var(--purple-border), transparent); }
+
+/* CLINICAL BLOCK */
+.clinical-block {
+  background: var(--surface2); border: 1px solid var(--purple-border);
+  border-radius: 10px; padding: 14px; margin-bottom: 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.clinical-block .field input,
+.clinical-block .field textarea { background: var(--surface3); border-color: var(--border); }
+.clinical-block .field input:focus,
+.clinical-block .field textarea:focus { border-color: var(--purple); }
+
+/* VITALS */
+.vitals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.vital-field { display: flex; flex-direction: column; gap: 4px; }
+.vital-field label {
+  font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3);
+}
+.vital-input {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: 7px; padding: 8px 10px; color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  outline: none; transition: border-color 0.2s; width: 100%;
+}
+.vital-input:focus { border-color: var(--purple); }
+.vital-input::placeholder { color: var(--text3); font-family: 'Literata', serif; font-size: 11px; }
+
+/* AUTOFILL BUTTON */
+.btn-autofill {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(45,212,191,0.1));
+  border: 1px solid var(--purple-border); border-radius: 10px;
+  color: var(--purple); font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+  cursor: pointer; transition: all 0.2s; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-autofill:hover { background: linear-gradient(135deg, rgba(167,139,250,0.25), rgba(45,212,191,0.15)); border-color: var(--purple); }
+
+/* DETECTED TAG */
+.detected-tag {
+  display: none; align-items: center; gap: 6px;
+  font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 12px;
+  padding: 6px 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.detected-tag.visible { display: flex; }
+.detected-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--purple); }
+
+/* FDAR BLOCKS */
+.fdar-blocks { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.fdar-block { border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+.fdar-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+.fdar-letter { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; line-height: 1; width: 28px; }
+.fdar-label { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }
+.fdar-hint { font-size: 10px; opacity: 0.65; margin-top: 1px; }
+.fdar-block textarea {
+  width: 100%; background: var(--surface3);
+  border: none; border-top: 1px solid var(--border);
+  padding: 12px 14px; color: var(--text);
+  font-family: 'Literata', serif; font-size: 13.5px; line-height: 1.55;
+  resize: none; outline: none; min-height: 80px; transition: background 0.2s;
+}
+.fdar-block textarea::placeholder { color: var(--text3); font-style: italic; }
+.fdar-block textarea:focus { background: #1a2030; }
+
+.fdar-block.f-block { border-color: rgba(240,180,41,0.3); }
+.fdar-block.f-block .fdar-head { background: rgba(240,180,41,0.08); }
+.fdar-block.f-block .fdar-letter { color: var(--F); }
+.fdar-block.f-block .fdar-label { color: var(--F); }
+.fdar-block.d-block { border-color: rgba(88,166,255,0.3); }
+.fdar-block.d-block .fdar-head { background: rgba(88,166,255,0.07); }
+.fdar-block.d-block .fdar-letter { color: var(--D); }
+.fdar-block.d-block .fdar-label { color: var(--D); }
+.fdar-block.a-block { border-color: rgba(63,185,80,0.3); }
+.fdar-block.a-block .fdar-head { background: rgba(63,185,80,0.07); }
+.fdar-block.a-block .fdar-letter { color: var(--A); }
+.fdar-block.a-block .fdar-label { color: var(--A); }
+.fdar-block.r-block { border-color: rgba(45,212,191,0.3); }
+.fdar-block.r-block .fdar-head { background: rgba(45,212,191,0.07); }
+.fdar-block.r-block .fdar-letter { color: var(--R); }
+.fdar-block.r-block .fdar-label { color: var(--R); }
+
+/* SAVE / CLEAR */
+.btn-save {
+  width: 100%; padding: 14px; background: var(--teal); color: #0d1117;
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+  letter-spacing: 1px; border: none; border-radius: 10px;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-save:hover { background: #26bfac; }
+.btn-save:active { transform: scale(0.98); }
+.btn-clear {
+  width: 100%; margin-top: 8px; padding: 10px; background: transparent;
+  color: var(--text3); font-family: 'Syne', sans-serif;
+  font-size: 12px; font-weight: 600; letter-spacing: 1px;
+  border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-clear:hover { border-color: var(--red); color: var(--red); }
+
+/* RECORDS */
+.records-wrap { padding: 14px 18px; }
+.search-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+.search-bar input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; color: var(--text);
+  font-family: 'Literata', serif; font-size: 14px; outline: none;
+}
+.search-bar input:focus { border-color: var(--teal); }
+.search-bar input::placeholder { color: var(--text3); }
+.sort-btn {
+  padding: 10px 14px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text2); font-size: 14px; cursor: pointer;
+}
+.entries-list { display: flex; flex-direction: column; gap: 10px; }
+.entry-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; cursor: pointer; transition: border-color 0.2s;
+}
+.entry-card:hover { border-color: var(--teal); }
+.entry-card-head { padding: 12px 14px 10px; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.entry-patient { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--white); }
+.entry-diagnosis { font-size: 11px; color: var(--purple); margin-top: 1px; font-style: italic; }
+.entry-meta { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+.entry-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-icon {
+  width: 28px; height: 28px; background: var(--surface3); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text3); font-size: 12px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.btn-icon:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+.btn-icon.print:hover { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); }
+.entry-fdar-strip { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border); }
+.strip-item { padding: 8px 10px; border-right: 1px solid var(--border); }
+.strip-item:last-child { border-right: none; }
+.strip-letter { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800; margin-bottom: 2px; }
+.strip-preview { font-size: 10px; color: var(--text3); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.strip-item.f .strip-letter { color: var(--F); }
+.strip-item.d .strip-letter { color: var(--D); }
+.strip-item.a .strip-letter { color: var(--A); }
+.strip-item.r .strip-letter { color: var(--R); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
+.empty-state .big { font-size: 40px; margin-bottom: 12px; }
+.empty-state .msg { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; color: var(--text2); }
+.empty-state .sub { font-size: 12px; margin-top: 4px; }
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+  padding: 16px; align-items: flex-end;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px 16px 0 0; width: 100%; max-width: 480px;
+  margin: 0 auto; max-height: 88vh; overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 12px auto 0; }
+.modal-head { padding: 14px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; }
+.modal-patient { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--white); }
+.modal-diagnosis { font-size: 12px; color: var(--purple); font-style: italic; margin-top: 2px; }
+.modal-meta { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+.modal-close { background: var(--surface3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; color: var(--text3); font-size: 12px; cursor: pointer; }
+.modal-vitals-strip { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+.vital-chip { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text2); background: var(--surface3); border: 1px solid var(--border); border-radius: 5px; padding: 3px 8px; }
+.vital-chip span { color: var(--teal); font-weight: 500; }
+.modal-body { padding: 14px 18px 24px; display: flex; flex-direction: column; gap: 12px; }
+.modal-fdar-block { border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+.modal-fdar-head { padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+.modal-fdar-letter { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
+.modal-fdar-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.modal-fdar-content { padding: 10px 12px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; border-top: 1px solid var(--border); background: var(--surface3); color: var(--text); min-height: 48px; }
+.modal-fdar-empty { color: var(--text3); font-style: italic; }
+.mf-block.f .modal-fdar-head { background: rgba(240,180,41,0.07); }
+.mf-block.f .modal-fdar-letter { color: var(--F); }
+.mf-block.f .modal-fdar-title { color: var(--F); }
+.mf-block.d .modal-fdar-head { background: rgba(88,166,255,0.07); }
+.mf-block.d .modal-fdar-letter { color: var(--D); }
+.mf-block.d .modal-fdar-title { color: var(--D); }
+.mf-block.a .modal-fdar-head { background: rgba(63,185,80,0.07); }
+.mf-block.a .modal-fdar-letter { color: var(--A); }
+.mf-block.a .modal-fdar-title { color: var(--A); }
+.mf-block.r .modal-fdar-head { background: rgba(45,212,191,0.07); }
+.mf-block.r .modal-fdar-letter { color: var(--R); }
+.mf-block.r .modal-fdar-title { color: var(--R); }
+.modal-actions { display: flex; gap: 8px; margin-top: 4px; }
+.modal-btn { flex: 1; padding: 11px; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; border-radius: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid var(--border); }
+.modal-btn.delete { background: var(--red-dim); color: var(--red); border-color: rgba(248,81,73,0.3); }
+.modal-btn.delete:hover { background: var(--red); color: var(--white); }
+.modal-btn.close { background: var(--surface3); color: var(--text2); }
+
+/* GUIDE */
+.guide-wrap { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.guide-intro { background: var(--teal-dim2); border: 1px solid rgba(45,212,191,0.2); border-radius: 10px; padding: 14px; }
+.guide-intro-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; color: var(--teal); margin-bottom: 6px; }
+.guide-intro-text { font-size: 13px; line-height: 1.6; color: var(--text2); }
+.guide-card { border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+.guide-card-head { padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+.guide-big-letter { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; line-height: 1; }
+.guide-label { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+.guide-label-sub { font-size: 11px; opacity: 0.7; margin-top: 1px; }
+.guide-body { padding: 10px 14px 12px; background: var(--surface3); border-top: 1px solid var(--border); }
+.guide-example { font-size: 12.5px; font-style: italic; color: var(--text2); line-height: 1.55; margin-bottom: 8px; border-left: 2px solid var(--border2); padding-left: 10px; }
+.guide-tips { display: flex; flex-direction: column; gap: 4px; }
+.guide-tip { font-size: 12px; color: var(--text2); display: flex; gap: 6px; align-items: flex-start; line-height: 1.4; }
+.guide-tip::before { content: '·'; color: var(--text3); flex-shrink: 0; }
+.gcard-f .guide-card-head { background: rgba(240,180,41,0.07); border-bottom: 1px solid rgba(240,180,41,0.2); }
+.gcard-f .guide-big-letter, .gcard-f .guide-label { color: var(--F); }
+.gcard-d .guide-card-head { background: rgba(88,166,255,0.07); border-bottom: 1px solid rgba(88,166,255,0.2); }
+.gcard-d .guide-big-letter, .gcard-d .guide-label { color: var(--D); }
+.gcard-a .guide-card-head { background: rgba(63,185,80,0.07); border-bottom: 1px solid rgba(63,185,80,0.2); }
+.gcard-a .guide-big-letter, .gcard-a .guide-label { color: var(--A); }
+.gcard-r .guide-card-head { background: rgba(45,212,191,0.07); border-bottom: 1px solid rgba(45,212,191,0.2); }
+.gcard-r .guide-big-letter, .gcard-r .guide-label { color: var(--R); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--teal); color: #0d1117;
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+  padding: 10px 20px; border-radius: 20px;
+  z-index: 500; opacity: 0; transition: opacity 0.3s;
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; }
+.toast.error { background: var(--red); color: var(--white); }
+
+/* PRINT */
+@media print {
+  body { background: white; color: black; font-family: serif; }
+  .topbar, .tabs, .modal-overlay, .toast, .btn-save, .btn-clear,
+  .records-wrap, .guide-wrap, .entry-actions, .modal-actions,
+  .modal-handle, .modal-close { display: none !important; }
+  .modal-overlay.open { display: block !important; background: white; position: static; padding: 0; }
+  .modal { max-height: none; border: none; border-radius: 0; background: white; animation: none; }
+  .modal-head { border-color: #ccc; }
+  .modal-patient { color: black; }
+  .modal-meta, .modal-diagnosis { color: #555; }
+  .modal-vitals-strip { background: #f5f5f5; border-color: #ccc; }
+  .vital-chip { background: white; border-color: #ccc; color: #333; }
+  .vital-chip span { color: #333; }
+  .modal-fdar-head { background: #f5f5f5 !important; }
+  .modal-fdar-content { background: white; color: black; border-color: #ccc; }
+  .modal-fdar-letter, .modal-fdar-title { color: black !important; }
+  @page { margin: 15mm; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">📋</div>
+    <div>
+      <div class="brand-name"><span>F</span>DAR</div>
+      <div class="brand-sub">Nursing Chart</div>
+    </div>
+  </div>
+  <div class="count-badge" id="countBadge">0 entries</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('new')">✏️ New Entry</button>
+  <button class="tab" onclick="switchTab('records')">📁 Records</button>
+  <button class="tab" onclick="switchTab('guide')">📖 Guide</button>
+</div>
+
+<!-- NEW ENTRY -->
+<div class="view active" id="view-new">
+  <div class="form-wrap">
+
+    <div class="patient-row">
+      <div class="field">
+        <label>Patient Name</label>
+        <input type="text" id="patientName" placeholder="Juan dela Cruz" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Room / Bed</label>
+        <input type="text" id="roomBed" placeholder="302-A" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Date &amp; Time</label>
+        <input type="datetime-local" id="entryDatetime">
+      </div>
+      <div class="field">
+        <label>Shift</label>
+        <select id="shift">
+          <option value="Morning (7AM–3PM)">🌅 Morning (7AM–3PM)</option>
+          <option value="Afternoon (3PM–11PM)">🌇 Afternoon (3PM–11PM)</option>
+          <option value="Night (11PM–7AM)">🌙 Night (11PM–7AM)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-label">Clinical Information</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="clinical-block">
+      <div class="field">
+        <label>Medical Diagnosis</label>
+        <textarea id="diagnosisField" rows="2" placeholder="e.g. Community-acquired pneumonia, right lower lobe; Type 2 Diabetes Mellitus with hypertension..."></textarea>
+      </div>
+      <div class="field">
+        <label>Chief Complaint</label>
+        <input type="text" id="chiefComplaint" placeholder="e.g. Difficulty breathing, fever for 3 days, chest pain on inspiration">
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Vital Signs</div>
+        <div class="vitals-grid">
+          <div class="vital-field"><label>BP</label><input type="text" class="vital-input" id="vBP" placeholder="120/80"></div>
+          <div class="vital-field"><label>Temp (°C)</label><input type="text" class="vital-input" id="vTemp" placeholder="37.0"></div>
+          <div class="vital-field"><label>HR (bpm)</label><input type="text" class="vital-input" id="vHR" placeholder="80"></div>
+          <div class="vital-field"><label>RR (/min)</label><input type="text" class="vital-input" id="vRR" placeholder="18"></div>
+          <div class="vital-field"><label>O2 Sat (%)</label><input type="text" class="vital-input" id="vO2" placeholder="98"></div>
+          <div class="vital-field"><label>GCS</label><input type="text" class="vital-input" id="vGCS" placeholder="15"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-autofill" onclick="autoFillFDAR()">✨ Auto-fill FDAR from Clinical Data</button>
+    <div class="detected-tag" id="detectedTag"><div class="detected-dot"></div><span id="detectedLabel"></span></div>
+
+    <div class="section-header">
+      <div class="section-label">FDAR Documentation</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="fdar-blocks">
+      <div class="fdar-block f-block">
+        <div class="fdar-head">
+          <div class="fdar-letter">F</div>
+          <div>
+            <div class="fdar-label">FOCUS</div>
+            <div class="fdar-hint" style="color:#c9a040">Primary nursing concern or problem</div>
+          </div>
+        </div>
+        <textarea id="fField" rows="3" placeholder="e.g. Acute pain related to post-operative incision site..."></textarea>
+      </div>
+      <div class="fdar-block d-block">
+        <div class="fdar-head">
+          <div class="fdar-letter">D</div>
+          <div>
+            <div class="fdar-label">DATA</div>
+            <div class="fdar-hint" style="color:#4a8fd4">Subjective and objective findings</div>
+          </div>
+        </div>
+        <textarea id="dField" rows="5" placeholder="S: Patient verbalized '___'&#10;O: BP ___, HR ___, RR ___, Temp ___°C, O2 Sat ___%&#10;Physical exam: ___"></textarea>
+      </div>
+      <div class="fdar-block a-block">
+        <div class="fdar-head">
+          <div class="fdar-letter">A</div>
+          <div>
+            <div class="fdar-label">ACTION</div>
+            <div class="fdar-hint" style="color:#2d9040">Nursing interventions performed</div>
+          </div>
+        </div>
+        <textarea id="aField" rows="5" placeholder="• Vital signs monitored q4h&#10;• Medications administered: ___&#10;• Physician notified..."></textarea>
+      </div>
+      <div class="fdar-block r-block">
+        <div class="fdar-head">
+          <div class="fdar-letter">R</div>
+          <div>
+            <div class="fdar-label">RESPONSE</div>
+            <div class="fdar-hint" style="color:#1aada0">Patient's response to interventions</div>
+          </div>
+        </div>
+        <textarea id="rField" rows="3" placeholder="e.g. Patient reported pain decreased to 4/10 after analgesic..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn-save" onclick="saveEntry()">💾 Save FDAR Entry</button>
+    <button class="btn-clear" onclick="clearForm()">🗑 Clear Form</button>
+  </div>
+</div>
+
+<!-- RECORDS -->
+<div class="view" id="view-records">
+  <div class="records-wrap">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search patient or diagnosis..." oninput="renderRecords()">
+      <button class="sort-btn" onclick="toggleSort()">↕️</button>
+    </div>
+    <div class="entries-list" id="entriesList"></div>
+  </div>
+</div>
+
+<!-- GUIDE -->
+<div class="view" id="view-guide">
+  <div class="guide-wrap">
+    <div class="guide-intro">
+      <div class="guide-intro-title">What is FDAR Charting?</div>
+      <div class="guide-intro-text">
+        FDAR is a systematic method of nursing documentation ensuring every note is complete and legally sound. Fill in the Clinical Information fields and tap <strong>Auto-fill</strong> to generate a ready-to-edit draft.
+      </div>
+    </div>
+    <div class="guide-card gcard-f">
+      <div class="guide-card-head"><div class="guide-big-letter">F</div><div><div class="guide-label">FOCUS</div><div class="guide-label-sub">Primary subject of the entry</div></div></div>
+      <div class="guide-body">
+        <div class="guide-example">"Acute pain related to post-operative wound, pain scale 8/10, patient appears restless and diaphoretic."</div>
+        <div class="guide-tips">
+          <div class="guide-tip">Can be a nursing diagnosis, symptom, or clinical concern</div>
+          <div class="guide-tip">Be specific — not just "pain" but "acute pain r/t ___"</div>
+          <div class="guide-tip">Can also be a significant event (fall, code blue)</div>
+        </div>
+      </div>
+    </div>
+    <div class="guide-card gcard-d">
+      <div class="guide-card-head"><div class="guide-big-letter">D</div><div><div class="guide-label">DATA</div><div class="guide-label-sub">Subjective and objective evidence</div></div></div>
+      <div class="guide-body">
+        <div class="guide-example">"S: Patient verbalized 'The pain is unbearable, I cannot sleep.'<br>O: BP 140/90, HR 102, Temp 37.8°C. Wound site erythematous."</div>
+        <div class="guide-tips">
+          <div class="guide-tip"><strong>S</strong> — patient's own words in quotation marks</div>
+          <div class="guide-tip"><strong>O</strong> — vital signs, physical findings, lab values</div>
+          <div class="guide-tip">Report facts only — no interpretation</div>
+        </div>
+      </div>
+    </div>
+    <div class="guide-card gcard-a">
+      <div class="guide-card-head"><div class="guide-big-letter">A</div><div><div class="guide-label">ACTION</div><div class="guide-label-sub">All interventions performed</div></div></div>
+      <div class="guide-body">
+        <div class="guide-example">"Administered Ketorolac 30mg IV as ordered. Repositioned patient. Dr. Reyes notified — ordered dressing change."</div>
+        <div class="guide-tips">
+          <div class="guide-tip">List ALL actions — meds, positioning, monitoring, education</div>
+          <div class="guide-tip">Include time of medication administration</div>
+          <div class="guide-tip">Document physician notification and orders received</div>
+        </div>
+      </div>
+    </div>
+    <div class="guide-card gcard-r">
+      <div class="guide-card-head"><div class="guide-big-letter">R</div><div><div class="guide-label">RESPONSE</div><div class="guide-label-sub">Patient's response to interventions</div></div></div>
+      <div class="guide-body">
+        <div class="guide-example">"Patient reported pain decreased to 4/10 after 30 min. BP normalized to 120/80. Verbalized understanding of wound care."</div>
+        <div class="guide-tips">
+          <div class="guide-tip">Compare to initial data (e.g., pain 8/10 → 4/10)</div>
+          <div class="guide-tip">Include patient's verbal response</div>
+          <div class="guide-tip">If no improvement — note it and document follow-up</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div>
+        <div class="modal-patient" id="modalPatient"></div>
+        <div class="modal-diagnosis" id="modalDiagnosis"></div>
+        <div class="modal-meta" id="modalMeta"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕ Close</button>
+    </div>
+    <div class="modal-vitals-strip" id="modalVitals"></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var STORAGE_KEY = 'fdar-entries-v1';
+var sortDesc = true;
+
+// ─── INIT ───
+window.onload = function() {
+  var now = new Date();
+  var local = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  document.getElementById('entryDatetime').value = local;
+  autoDetectShift(now.getHours());
+  updateCount();
+};
+
+function autoDetectShift(h) {
+  var s = document.getElementById('shift');
+  if (h >= 7 && h < 15) s.value = 'Morning (7AM–3PM)';
+  else if (h >= 15 && h < 23) s.value = 'Afternoon (3PM–11PM)';
+  else s.value = 'Night (11PM–7AM)';
+}
+
+// ─── TABS ───
+function switchTab(tab) {
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('view-' + tab).classList.add('active');
+  var idx = tab === 'new' ? 0 : tab === 'records' ? 1 : 2;
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  if (tab === 'records') renderRecords();
+}
+
+// ─── STORAGE ───
+function getEntries() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e) { return []; }
+}
+function saveEntries(e) { localStorage.setItem(STORAGE_KEY, JSON.stringify(e)); }
+
+// ─── AUTOFILL ENGINE ───
+function getVitals() {
+  return {
+    bp:   document.getElementById('vBP').value.trim(),
+    temp: document.getElementById('vTemp').value.trim(),
+    hr:   document.getElementById('vHR').value.trim(),
+    rr:   document.getElementById('vRR').value.trim(),
+    o2:   document.getElementById('vO2').value.trim(),
+    gcs:  document.getElementById('vGCS').value.trim()
+  };
+}
+
+function vitalsLine(v) {
+  var parts = [];
+  if (v.bp)   parts.push('BP ' + v.bp + ' mmHg');
+  if (v.temp) parts.push('Temp ' + v.temp + '°C');
+  if (v.hr)   parts.push('HR ' + v.hr + ' bpm');
+  if (v.rr)   parts.push('RR ' + v.rr + '/min');
+  if (v.o2)   parts.push('O2 Sat ' + v.o2 + '%');
+  if (v.gcs)  parts.push('GCS ' + v.gcs);
+  return parts.length ? parts.join(', ') : 'Vital signs as charted';
+}
+
+function has(text, words) {
+  return words.some(function(w) { return text.indexOf(w) !== -1; });
+}
+
+function detectCondition(text) {
+  if (has(text, ['pneumonia','bronchitis','copd','asthma','respiratory','dyspnea','shortness of breath','sob','tuberculosis',' tb ','pleural','effusion','pneumothorax','pulmonary','lung infection','upper respiratory','uri','lrti'])) return 'respiratory';
+  if (has(text, ['chest pain','cardiac','heart failure','chf','myocardial','infarction',' mi ','acs','angina','coronary','arrhythmia','atrial fib','palpitation','congestive'])) return 'cardiac';
+  if (has(text, ['hypertension','htn','elevated blood pressure','high blood pressure','hypertensive'])) return 'hypertension';
+  if (has(text, ['stroke','cva','tia','cerebrovascular','hemiplegia','hemiparesis','facial droop','slurred speech','aphasia'])) return 'stroke';
+  if (has(text, ['seizure','epilepsy','convulsion','status epilepticus'])) return 'seizure';
+  if (has(text, ['diabetes','dm ','type 1 dm','type 2 dm','hyperglycemia','hypoglycemia','dka','diabetic ketoacidosis','hhs'])) return 'diabetes';
+  if (has(text, ['appendicitis','abdominal pain','acute abdomen','peritonitis','bowel obstruction','ileus'])) return 'abdominal';
+  if (has(text, ['gi bleed','gastrointestinal bleed','hematemesis','melena','hematochezia','peptic ulcer'])) return 'gi_bleed';
+  if (has(text, ['pancreatitis','nausea','vomiting','gastroenteritis','diarrhea'])) return 'gi_general';
+  if (has(text, ['uti','urinary tract','urinary infection','pyelonephritis','dysuria','frequency'])) return 'uti';
+  if (has(text, ['renal failure','kidney failure','ckd','acute kidney','aki','dialysis','oliguria','anuria'])) return 'renal';
+  if (has(text, ['sepsis','septicemia','bacteremia','systemic infection','sirs'])) return 'sepsis';
+  if (has(text, ['cellulitis','wound infection','abscess','soft tissue infection'])) return 'wound_infection';
+  if (has(text, ['fracture','post-op','post op','post operative','surgical','orthopedic','surgery','arthroplasty','amputation'])) return 'postop';
+  if (has(text, ['pain management','chronic pain','acute pain','analgesic'])) return 'pain';
+  if (has(text, ['anemia','low hemoglobin','low hgb','transfusion'])) return 'anemia';
+  if (has(text, ['fever','febrile','hyperthermia','pyrexia'])) return 'fever';
+  if (has(text, ['dehydration','fluid deficit','hypovolemia'])) return 'dehydration';
+  if (has(text, ['fall','injury','trauma','head injury','laceration','contusion'])) return 'trauma';
+  return 'general';
+}
+
+var TEMPLATES = {
+
+  respiratory: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    var lowO2 = v.o2 && parseInt(v.o2) < 95;
+    var highRR = v.rr && parseInt(v.rr) > 20;
+    return {
+      label: 'Respiratory Condition',
+      f: 'Ineffective Airway Clearance / Impaired Gas Exchange related to ' + (dx || 'respiratory condition') + (cc ? ' as evidenced by patient\'s report of ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I am having difficulty breathing and my chest feels tight') + '"\nO: ' + vl + '\n   Breath sounds: diminished with crackles/wheezing noted on auscultation bilaterally\n   Accessory muscle use: ' + (highRR ? 'present' : 'none noted') + '\n   Cough: present' + (dx.indexOf('pneumonia') !== -1 ? ', productive with purulent/yellow sputum' : ', non-productive') + '\n   O2 saturation: ' + (v.o2 ? v.o2 + '%' : 'per monitor') + (lowO2 ? ' — supplemental O2 required' : ' on room air'),
+      a: '• Placed patient in high Fowler\'s position (HOB 60–90°) to maximize lung expansion\n• Oxygen therapy initiated/maintained as ordered; flow rate titrated to maintain O2 sat >95%\n• Vital signs and O2 saturation monitored continuously\n• Encouraged deep breathing and directed coughing exercises q2h\n• Chest physiotherapy / percussion performed as ordered\n• Medications administered as ordered (bronchodilators, antibiotics, antipyretics)\n• IV access maintained; IV fluids infusing as ordered\n• Sputum specimen collected and sent to lab as ordered\n• Attending physician notified of current respiratory status and vital signs\n• Intake and output monitored; adequate hydration maintained\n• Patient and family educated on respiratory precautions and medication compliance',
+      r: 'Patient responded to interventions. ' + (v.o2 ? 'O2 saturation maintained at ' + v.o2 + '%' : 'O2 saturation improved') + ' with supplemental oxygen in place. Patient verbalized slight improvement in breathing comfort. Respiratory rate ' + (highRR ? 'remains elevated — physician aware' : 'within acceptable range') + '. Patient cooperative with coughing and deep breathing exercises. Continue to monitor.'
+    };
+  },
+
+  cardiac: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    var highBP = v.bp && parseInt(v.bp) > 140;
+    return {
+      label: 'Cardiac Condition',
+      f: 'Decreased Cardiac Output / Acute Pain related to ' + (dx || 'cardiac condition') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I feel chest pain and my heart is racing') + '"\nO: ' + vl + '\n   Cardiac rhythm: ' + (dx.indexOf('fib') !== -1 ? 'irregularly irregular' : 'regular rhythm on monitor') + '\n   Peripheral pulses: present bilaterally, equal\n   Capillary refill: <2 seconds\n   Skin: ' + (highBP ? 'flushed, diaphoretic' : 'warm, dry, intact') + '\n   No pitting edema noted bilaterally\n   JVD: not distended at 45°',
+      a: '• Patient placed on continuous cardiac monitoring (ECG)\n• 12-lead ECG performed and results forwarded to attending physician\n• Vital signs monitored q1h; hemodynamic status assessed\n• IV access established; medications administered as ordered\n• Oxygen therapy applied as ordered\n• Activity restricted to bed rest; patient instructed not to exert effort\n• Attending physician notified of cardiac status and vitals\n• Medications administered as ordered (antihypertensives, anticoagulants, nitroglycerin PRN)\n• Blood specimens sent for labs (CBC, Troponin I/T, BMP, PT/INR) as ordered\n• Patient instructed to report any worsening chest pain, dyspnea, or new symptoms immediately\n• Emotional support provided; patient reassured',
+      r: 'Patient remains on continuous cardiac monitoring with no acute rhythm changes noted at this time. ' + (v.bp ? 'BP recorded at ' + v.bp + ' mmHg.' : '') + ' Patient verbalized understanding of activity restrictions. Chest pain rated ' + (cc && cc.toLowerCase().indexOf('pain') !== -1 ? 'slightly improved' : 'stable') + ' after interventions. Patient calm and cooperative. Physician updated.'
+    };
+  },
+
+  hypertension: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Hypertension',
+      f: 'Risk for Altered Cerebral Tissue Perfusion related to ' + (dx || 'hypertension') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I have a severe headache and I feel dizzy') + '"\nO: ' + vl + '\n   Neuro: alert and oriented x3, no focal deficits noted\n   Visual disturbances: ' + (cc && cc.indexOf('vision') !== -1 ? 'reported by patient' : 'none verbalized') + '\n   Facial symmetry: intact\n   Grip strength: equal bilaterally',
+      a: '• Vital signs monitored q1h until BP within acceptable range, then q4h\n• Patient maintained on bed rest; environment kept calm and quiet\n• Antihypertensive medications administered as ordered; time and route documented\n• IV access established and maintained\n• Attending physician notified of BP reading and symptoms\n• Neurological status assessed q4h (LOC, pupils, motor/sensory function)\n• Headache management initiated per order (analgesics as prescribed)\n• Patient instructed to avoid Valsalva maneuver and straining\n• Sodium-restricted diet reinforced; dietary consult requested\n• Patient and family educated on hypertension management and medication adherence',
+      r: 'Patient tolerated antihypertensive medications without adverse effects. ' + (v.bp ? 'BP noted at ' + v.bp + ' mmHg following intervention.' : 'BP monitoring ongoing.') + ' Patient verbalized slight headache relief. Neurological status intact. Patient verbalized understanding of activity restrictions and medication importance. Continue to monitor BP closely.'
+    };
+  },
+
+  stroke: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Stroke / CVA',
+      f: 'Impaired Physical Mobility / Risk for Ineffective Cerebral Tissue Perfusion related to ' + (dx || 'cerebrovascular accident') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I cannot move my arm and my speech is slurred') + '" (if able to communicate)\nO: ' + vl + '\n   Neuro: ' + (v.gcs ? 'GCS ' + v.gcs : 'neurological assessment performed') + '\n   Motor: facial droop noted; extremity weakness on affected side\n   Speech: dysarthric / aphasic (as applicable)\n   Pupils: equal and reactive to light bilaterally\n   FAST score: positive for facial droop, arm weakness, speech difficulty\n   Dysphagia screen: performed prior to oral intake',
+      a: '• Neurological assessment performed and documented (GCS, NIHSS scale)\n• Attending physician and neurology team notified immediately\n• CT scan / MRI facilitated as ordered\n• Patient positioned with HOB at 0–30° (or per neurology order)\n• IV access (x2 large-bore) established; IV fluids at ordered rate\n• Continuous cardiac monitoring and pulse oximetry\n• NPO maintained pending dysphagia evaluation by speech therapist\n• Blood specimens collected: CBC, BMP, coagulation studies, lipid profile\n• Blood glucose monitored; hypoglycemia/hyperglycemia corrected as ordered\n• Fall risk precautions implemented: bed in lowest position, side rails up, call light within reach\n• Foley catheter inserted as ordered for urinary monitoring\n• Family notified and kept informed of patient status',
+      r: 'Patient remains stable with ongoing neuro monitoring. GCS ' + (v.gcs || 'documented') + '. No further deterioration in neurological status noted at this time. Physician and neurology team updated. Family at bedside, verbalized understanding of condition and plan of care. Patient maintained safely per fall risk and aspiration precautions.'
+    };
+  },
+
+  seizure: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Seizure / Epilepsy',
+      f: 'Risk for Injury / Ineffective Airway related to ' + (dx || 'seizure disorder') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized (post-ictal) "' + (cc || 'I felt a sudden jerk, then I lost consciousness') + '"\nO: ' + vl + '\n   LOC: post-ictal; drowsy but arousable; oriented to person only\n   Seizure description: onset, duration, type of movements as witnessed\n   Tongue laceration: ' + (cc && cc.indexOf('bite') !== -1 ? 'present' : 'none noted') + '\n   Incontinence: none / noted during episode\n   Pupils: equal and reactive bilaterally',
+      a: '• Patient placed in safe lateral position during post-ictal phase to prevent aspiration\n• Airway maintained and patency confirmed; O2 applied as ordered\n• Suction equipment kept at bedside\n• Padded side rails raised; bed in lowest position; call light within reach\n• Continuous O2 saturation and cardiac monitoring\n• Seizure precautions implemented per protocol\n• Antiepileptic medications administered as ordered; time and dose documented\n• Attending physician notified; neurology consult requested\n• Blood specimens sent (CBC, BMP, antiepileptic drug levels, toxicology) as ordered\n• CT scan / EEG facilitated per order\n• Seizure duration, type, and post-ictal behavior documented\n• IV access maintained; IV benzodiazepine available at bedside per protocol\n• Family educated on seizure first aid and safety precautions',
+      r: 'Patient remains in post-ictal state, progressively arousable. Airway patent; O2 saturation ' + (v.o2 ? v.o2 + '%' : 'within normal limits') + '. No further seizure activity observed since last episode. Seizure precautions maintained. Physician updated on clinical status. Family present and verbalized understanding of safety precautions.'
+    };
+  },
+
+  diabetes: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    var isDKA = dx.indexOf('dka') !== -1 || dx.indexOf('ketoacidosis') !== -1;
+    var isHypo = dx.indexOf('hypoglycemia') !== -1 || (cc && cc.indexOf('low blood sugar') !== -1);
+    return {
+      label: 'Diabetes / Glycemic Condition',
+      f: (isHypo ? 'Unstable Blood Glucose (Hypoglycemia)' : isDKA ? 'Fluid and Electrolyte Imbalance / Metabolic Acidosis' : 'Unstable Blood Glucose (Hyperglycemia)') + ' related to ' + (dx || 'diabetes mellitus') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || (isHypo ? 'I feel shaky, sweaty, and confused' : 'I feel weak, thirsty, and I am urinating frequently')) + '"\nO: ' + vl + '\n   Blood glucose: ' + (isHypo ? 'critically low — hypoglycemia protocol initiated' : 'elevated per glucometer reading') + '\n   Skin: ' + (isHypo ? 'diaphoretic, pale, cool' : 'warm, dry; poor skin turgor') + '\n   Breath: ' + (isDKA ? 'fruity/acetone odor present' : 'normal') + '\n   Mental status: ' + (isHypo ? 'confused, lethargic' : 'alert and oriented x3') + '\n   Peripheral sensation: intact bilaterally',
+      a: (isHypo
+        ? '• Blood glucose rechecked immediately; result reported to attending physician\n• Hypoglycemia protocol initiated per order\n• D50W administered IV / oral glucose given (if conscious and able to swallow)\n• IV access established; IV fluids infusing as ordered\n• Patient placed on continuous monitoring; LOC assessed q15 min\n• Glucometer checks q30 min until glucose stabilized\n• Meal/snack provided once patient fully conscious and glucose normalized\n• Physician notified; insulin dose held / adjusted per order\n• Patient and family educated on hypoglycemia recognition and management'
+        : '• Blood glucose monitored per sliding scale / insulin protocol\n• Insulin administered as ordered (type, dose, route, time documented)\n• IV access established; IV fluids (NS / 0.45NS) infusing as ordered\n' + (isDKA ? '• Electrolyte replacement (potassium, bicarbonate) administered as ordered\n• ABG and BMP monitored per order\n• Urinary output monitored via Foley catheter; I&O strictly documented\n• Continuous cardiac monitoring for dysrhythmias secondary to electrolyte imbalance\n' : '') + '• Attending physician notified of glucose levels and patient status\n• Diabetic diet reinforced; dietary consult arranged\n• Foot and skin integrity assessed; pressure injury prevention implemented\n• Patient and family educated on blood glucose monitoring and insulin administration'),
+      r: 'Patient responded to interventions. ' + (isHypo ? 'Blood glucose improving after treatment; patient more alert and oriented.' : 'Blood glucose trend monitored; insulin therapy ongoing per sliding scale.') + ' Vital signs ' + (v.bp ? 'BP ' + v.bp + ',' : '') + (v.hr ? ' HR ' + v.hr + ',' : '') + ' stable. Patient verbalized understanding of glucose monitoring and dietary restrictions. Physician updated on progress.'
+    };
+  },
+
+  abdominal: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Abdominal / Surgical',
+      f: 'Acute Pain / Risk for Infection related to ' + (dx || 'acute abdominal condition') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'My abdomen is very painful, especially when I move') + '"\nO: ' + vl + '\n   Abdomen: rigid, tender to palpation on RLQ / generalized (as applicable)\n   Bowel sounds: hypoactive on all four quadrants\n   Guarding: present; rebound tenderness noted\n   Nausea/vomiting: present\n   Last bowel movement: patient unable to recall',
+      a: '• Patient maintained NPO pending surgical evaluation / procedure\n• IV access (large bore) established; IV fluids infusing as ordered\n• Pain assessment using numeric scale q4h; analgesics administered as ordered\n• Antiemetics administered as ordered; nausea monitored\n• Vital signs monitored q2–4h; fever managed with antipyretics as ordered\n• Attending physician and surgical team notified\n• Abdominal assessment performed and documented q4–8h\n• NG tube inserted as ordered for gastric decompression\n• Labs sent (CBC, BMP, LFTs, amylase/lipase, urinalysis) and imaging facilitated as ordered\n• Intake and output strictly monitored\n• Patient and family informed of plan of care and possible surgical intervention',
+      r: 'Patient reports pain at ' + (cc && cc.indexOf('/10') !== -1 ? 'slightly reduced level' : 'current level') + ' after analgesic administration. Nausea partially controlled with antiemetic. NPO maintained; IV fluids infusing well. Abdomen reassessed; no change in rigidity noted. Surgical team updated. Patient verbalized understanding of NPO status and plan of care.'
+    };
+  },
+
+  gi_bleed: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'GI Bleed',
+      f: 'Deficient Fluid Volume / Risk for Hemorrhagic Shock related to ' + (dx || 'gastrointestinal bleeding') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I vomited blood and my stool is black and tarry') + '"\nO: ' + vl + '\n   Skin: pale, diaphoretic\n   Abdomen: soft, mild epigastric tenderness\n   Emesis: hematemesis — estimated volume documented\n   Stool: melena noted; rectal exam as per order\n   Peripheral IV: x2 large-bore established\n   Type and crossmatch: sent to blood bank',
+      a: '• Two large-bore IV access established; IV fluids (NS or LR) running wide open / per order\n• Continuous cardiac monitoring and pulse oximetry\n• Vital signs monitored q15–30 min; hemodynamic assessment\n• Attending physician notified immediately\n• Blood specimens sent: CBC, BMP, coagulation studies (PT/INR/PTT), type and crossmatch\n• Blood transfusion initiated as ordered; transfusion reaction protocol observed\n• NPO maintained; NG tube inserted for gastric lavage as ordered\n• GI team and endoscopy team notified for urgent upper endoscopy\n• Urinary output monitored via Foley catheter; I&O strictly documented\n• Oxygen therapy applied; HOB elevated 30°\n• Vasopressor / proton pump inhibitor administered as ordered\n• Patient and family informed of condition severity and plan of care',
+      r: 'Patient hemodynamically ' + (v.bp && parseInt(v.bp) < 90 ? 'unstable — physician at bedside' : 'monitoring ongoing') + '. IV fluid resuscitation in progress. ' + (v.bp ? 'BP at ' + v.bp + ' mmHg.' : '') + ' No further vomiting of blood at this time. Urine output within acceptable range. GI team updated. Family informed and present at bedside.'
+    };
+  },
+
+  gi_general: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'GI Condition',
+      f: 'Nausea / Risk for Deficient Fluid Volume related to ' + (dx || 'gastrointestinal condition') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I feel nauseous and I have been vomiting, I cannot keep food down') + '"\nO: ' + vl + '\n   Abdomen: soft, tenderness noted on palpation\n   Bowel sounds: ' + (dx.indexOf('pancreatitis') !== -1 ? 'diminished' : 'hyperactive') + '\n   Mucous membranes: dry; skin turgor: poor\n   Emesis: noted — frequency and character documented\n   Last oral intake: patient unable to tolerate',
+      a: '• NPO maintained or clear liquid diet as ordered\n• IV access established; IV fluids (NS/D5LR) infusing at ordered rate for rehydration\n• Antiemetics administered as ordered (time, drug, dose, route documented)\n• Analgesics administered as ordered for abdominal pain\n• Vital signs monitored q4h; hydration status assessed\n• Intake and output strictly monitored; emesis measured and recorded\n• Labs sent (electrolytes, BMP, amylase/lipase as applicable)\n• Attending physician notified of clinical status\n• Diet advanced slowly as tolerated per order\n• Patient educated on oral rehydration and dietary modifications',
+      r: 'Patient reports nausea slightly improved after antiemetic administration. No further episodes of vomiting since last intervention. IV fluids infusing well; oral mucosa appears more moist. Vital signs ' + vl + ' — stable. Patient verbalized understanding of dietary restrictions and importance of hydration.'
+    };
+  },
+
+  uti: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Urinary Tract Infection',
+      f: 'Acute Pain / Impaired Urinary Elimination related to ' + (dx || 'urinary tract infection') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'It burns when I urinate and I feel like I constantly need to go') + '"\nO: ' + vl + '\n   Urinalysis findings: cloudiness, strong odor; WBC, bacteria, nitrites present per UA results\n   Urine culture: specimen sent to laboratory\n   Costovertebral angle tenderness: ' + (dx.indexOf('pyelo') !== -1 ? 'present bilaterally' : 'absent') + '\n   Urinary frequency: increased; urgency present\n   No hematuria observed visually (or hematuria noted)',
+      a: '• Urine specimen (midstream clean-catch) collected and sent for culture and sensitivity\n• Antibiotics administered as ordered; drug, dose, route, and time documented\n• Adequate fluid intake encouraged (2–3 L/day unless contraindicated)\n• Intake and output monitored\n• Analgesics / urinary analgesics (phenazopyridine) administered as ordered\n• Antipyretics administered for fever management\n• Vital signs monitored q4–8h\n• Attending physician notified of UA results and patient symptoms\n• Perineal hygiene education provided; patient instructed on proper wiping technique\n• Patient educated on completing full antibiotic course, hydration importance, and voiding habits',
+      r: 'Patient reports urinary discomfort slightly improved after analgesic administration. Tolerating oral fluids and antibiotics well. No adverse reactions noted. Vital signs stable — ' + vl + '. Patient verbalized understanding of antibiotic adherence and hygiene practices. Urine culture results pending; physician will be notified upon availability.'
+    };
+  },
+
+  renal: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Renal Condition',
+      f: 'Fluid Overload / Impaired Urinary Elimination related to ' + (dx || 'renal failure') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I have decreased urination and my legs are swollen') + '"\nO: ' + vl + '\n   Urine output: decreased / oliguria (document exact amount)\n   Pitting edema: 2+ bilateral lower extremities\n   Breath sounds: crackles at bases bilaterally\n   Weight: compared to baseline — increased (fluid retention)\n   Labs: BUN, creatinine elevated per results; electrolytes as documented',
+      a: '• Strict intake and output monitoring; urine output documented hourly\n• Daily weight recorded at same time with same scale\n• IV fluids restricted / administered cautiously per order\n• Diuretics administered as ordered; response monitored\n• Fluid restriction enforced as ordered; patient and family educated\n• Renal diet (low sodium, low potassium, low phosphorus) maintained\n• Labs monitored: BMP, creatinine, BUN, electrolytes per order\n• Attending physician and nephrology team notified of renal status\n• Dialysis facilitated as ordered\n• Edema assessed q8h; skin integrity monitored; repositioning q2h\n• Medications adjusted for renal function as ordered\n• Patient educated on fluid restriction and renal diet importance',
+      r: 'Urine output monitored and documented. ' + (v.bp ? 'BP ' + v.bp + ' mmHg.' : '') + ' Patient tolerated diuretic therapy; no adverse reactions noted. Fluid balance documented. Edema stable — no significant increase noted. Nephrology team updated. Patient and family verbalized understanding of fluid and dietary restrictions.'
+    };
+  },
+
+  sepsis: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    var highHR = v.hr && parseInt(v.hr) > 90;
+    var highTemp = v.temp && parseFloat(v.temp) > 38;
+    return {
+      label: 'Sepsis / Systemic Infection',
+      f: 'Risk for Septic Shock / Ineffective Tissue Perfusion related to ' + (dx || 'sepsis') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I feel very weak, my body is shaking, and I have chills') + '"\nO: ' + vl + '\n   ' + (highTemp ? 'Hyperthermia present — sepsis criteria met' : 'Temperature trending') + '\n   ' + (highHR ? 'Tachycardia noted' : 'Heart rate monitored') + '; peripheral perfusion assessed\n   Skin: flushed, warm; diaphoretic\n   Mental status: ' + (v.gcs && parseInt(v.gcs) < 14 ? 'altered — GCS ' + v.gcs : 'alert and oriented') + '\n   Source of infection: as identified or under investigation\n   Blood cultures: x2 peripheral sites sent prior to antibiotics',
+      a: '• Sepsis protocol / bundle initiated (Sepsis-3 criteria met)\n• Blood cultures (x2 sets) collected prior to antibiotic administration\n• Broad-spectrum antibiotics administered IV within 1 hour of sepsis recognition per order\n• IV fluid resuscitation: 30 mL/kg crystalloid (NS/LR) administered within 3 hours per order\n• Two large-bore IV access established\n• Continuous cardiac monitoring and pulse oximetry\n• Vital signs monitored q15–30 min; hemodynamic assessment q1h\n• Oxygen therapy applied; titrated to O2 sat >94%\n• Lactate level obtained per order\n• Urinary output monitored via Foley catheter; goal >0.5 mL/kg/hr\n• Attending physician and ICU team notified; ICU transfer arranged if indicated\n• Source control measures initiated per order (wound care, line removal, etc.)\n• Labs monitored: CBC, BMP, LFTs, coagulation studies, procalcitonin\n• Patient and family kept informed of clinical status',
+      r: 'Patient remains hemodynamically ' + (v.bp && parseInt(v.bp) < 90 ? 'unstable — vasopressors initiated / pending' : 'monitoring ongoing') + '. Sepsis bundle components completed. IV antibiotics and fluids infusing per protocol. Urine output ' + (v.o2 ? 'and O2 sat (' + v.o2 + '%) ' : '') + 'monitored continuously. ICU team updated. Family informed of critical status and plan of care.'
+    };
+  },
+
+  wound_infection: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Wound / Skin Infection',
+      f: 'Impaired Skin Integrity / Risk for Systemic Infection related to ' + (dx || 'wound infection / cellulitis') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'My wound is very red and painful, and it has discharge') + '"\nO: ' + vl + '\n   Wound/affected area: erythema, warmth, edema, and tenderness on palpation\n   Wound discharge: purulent / serosanguineous (describe color, amount, odor)\n   Wound size: documented in cm (length x width x depth)\n   Surrounding tissue: intact; no signs of tracking\n   Lymphadenopathy: regional nodes assessed',
+      a: '• Wound assessed and documented using wound assessment tool (size, stage, exudate, odor)\n• Wound care performed using aseptic/sterile technique as ordered\n• Dressing changed; type and material documented\n• Wound culture specimen collected and sent to lab prior to antibiotic therapy\n• Antibiotics administered as ordered (IV or oral per route); time and dose documented\n• Analgesics administered for wound pain management as ordered\n• Affected extremity elevated to reduce edema\n• Vital signs monitored q4–8h; fever managed with antipyretics\n• Attending physician notified of wound status and progression\n• Blood specimens sent (CBC, wound culture, sensitivity) as ordered\n• Patient and caregiver educated on wound care technique, hand hygiene, and infection signs',
+      r: 'Wound care completed without complication. Wound status reassessed post-dressing change: erythema extent marked for monitoring. Patient verbalized pain slightly improved (rate current level). Antibiotics administered and tolerated without adverse reaction. Vital signs ' + vl + ' — stable. Patient verbalized understanding of wound care and infection prevention measures.'
+    };
+  },
+
+  postop: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Post-Operative / Orthopedic',
+      f: 'Acute Pain / Risk for Post-Operative Complications related to ' + (dx || 'post-operative status') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'My incision site is very painful, especially when I move') + '"\nO: ' + vl + '\n   Surgical site: intact dressing in place; no breakthrough bleeding; no foul odor\n   Incision site: mild erythema, edges approximated, sutures/staples intact\n   Drainage: minimal serosanguineous drainage on dressing (describe)\n   Motor function: intact on affected limb (as applicable)\n   IV site: patent; no redness or swelling at insertion site\n   Last void: documented; urine clear, adequate amount',
+      a: '• Vital signs monitored q4h; O2 saturation on continuous monitoring\n• Pain assessed q4h using numeric pain scale; analgesics administered as ordered (time, drug, dose documented)\n• Surgical dressing assessed q4–8h; dressing changed using aseptic technique as ordered\n• Wound drainage measured and characteristics documented\n• Patient assisted with positioning q2h; proper body alignment maintained\n• Deep vein thrombosis (DVT) prophylaxis: compression stockings applied; anticoagulant administered as ordered\n• Deep breathing and incentive spirometry encouraged q2h to prevent atelectasis\n• Early ambulation encouraged and assisted as tolerated per surgeon order\n• IV access maintained; IV fluids and medications administered as ordered\n• Diet advanced as ordered (NPO → clear → regular)\n• Attending physician notified of post-operative status\n• Patient and family educated on post-operative care, wound monitoring, and activity restrictions',
+      r: 'Patient reports pain at current level after analgesic administration. Surgical site assessed — dressing intact with minimal drainage. Vital signs ' + vl + ' — stable. Incentive spirometry performed x10 breaths. ' + (v.o2 ? 'O2 saturation ' + v.o2 + '%.' : '') + ' Patient tolerated position change without complications. Physician updated on post-operative progress. Patient verbalized understanding of activity restrictions and wound care.'
+    };
+  },
+
+  pain: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Pain Management',
+      f: 'Acute / Chronic Pain related to ' + (dx || 'underlying condition') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I am in a lot of pain, it is difficult to rest or move') + '"\nO: ' + vl + '\n   Pain scale: rated by patient (numeric/FACES scale)\n   Pain location: as reported by patient\n   Pain character: described as sharp / dull / throbbing / burning\n   Pain aggravating factors: movement, deep breathing\n   Pain relieving factors: rest, positioning\n   Facial grimacing: present; guarding behavior noted',
+      a: '• Pain assessed using standardized pain scale; score documented\n• Analgesic medications administered as ordered; drug, dose, route, time documented\n• Non-pharmacologic comfort measures implemented: repositioning, ice/heat pack, relaxation techniques\n• Patient placed in comfortable position; pillows used for support\n• Environment optimized: quiet room, dimmed lighting, reduced stimuli\n• Vital signs monitored before and after analgesic administration\n• Pain response reassessed 30–60 minutes after intervention\n• Attending physician notified if pain unrelieved or worsening\n• Patient educated on pain scale use and importance of reporting pain early\n• Patient educated on prescribed analgesic use, side effects, and non-opioid alternatives',
+      r: 'Patient reports pain score improved from initial assessment to current level after analgesic and comfort measures. Patient verbalized partial relief. Vital signs ' + vl + ' — stable. No adverse reactions to medications noted. Patient able to rest more comfortably. Will continue to reassess pain q4h and PRN.'
+    };
+  },
+
+  anemia: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Anemia',
+      f: 'Activity Intolerance / Fatigue related to ' + (dx || 'anemia') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I feel very weak, dizzy, and I get short of breath easily') + '"\nO: ' + vl + '\n   CBC: Hgb and Hct below normal range per lab results\n   Skin: pale, conjunctivae pale\n   Capillary refill: sluggish (>3 seconds)\n   Mucous membranes: pale\n   Orthostatic hypotension: assessed — result documented',
+      a: '• Vital signs monitored q4–8h; orthostatic BP and HR assessed\n• Activity level restricted; bed rest with bathroom privileges or as ordered\n• Oxygen therapy applied as ordered; O2 saturation monitored\n• Fall risk precautions implemented; patient instructed to call for assistance\n• Blood transfusion initiated as ordered; blood type confirmed; pre-transfusion assessment completed\n• Transfusion reaction protocol in place; patient monitored q15 min for first hour\n• Iron supplementation / erythropoietin administered as ordered\n• Labs monitored: CBC, reticulocyte count, iron studies per order\n• Diet high in iron encouraged (if oral intake permitted); dietary consult arranged\n• Attending physician notified of current lab values and clinical status\n• Patient educated on energy conservation techniques and activity progression',
+      r: 'Patient tolerated interventions without complications. ' + (v.o2 ? 'O2 saturation maintained at ' + v.o2 + '%.' : '') + ' Activity restricted; patient compliant with fall precautions. ' + (dx.indexOf('transfusion') !== -1 ? 'Blood transfusion infusing without adverse reactions noted.' : 'Medications administered as ordered.') + ' Patient verbalized understanding of activity limitations and energy conservation. Physician updated on clinical status.'
+    };
+  },
+
+  fever: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Fever / Hyperthermia',
+      f: 'Hyperthermia related to ' + (dx || 'infection / inflammatory process') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I have chills and I feel very hot, my body is aching') + '"\nO: ' + vl + '\n   Skin: hot, flushed, diaphoretic\n   Mucous membranes: dry\n   Shivering: ' + (cc && cc.indexOf('chill') !== -1 ? 'present' : 'not observed') + '\n   Mental status: alert and oriented x3\n   Lymphadenopathy: assessed; result documented',
+      a: '• Antipyretics administered as ordered; time, drug, and dose documented\n• Temperature monitored q2–4h; thermometer method noted\n• Tepid sponge bath / cooling blanket applied as needed\n• Lightweight blankets and clothing used; environment kept cool\n• Adequate fluid intake encouraged (IV and/or oral) to prevent dehydration\n• IV fluids infusing as ordered for hydration\n• Blood cultures collected prior to antibiotic administration\n• Antibiotics administered as ordered if infectious source confirmed\n• Labs sent as ordered (CBC with differential, CRP, procalcitonin, blood cultures)\n• Attending physician notified of fever pattern and associated symptoms\n• Patient and family educated on fever management and hydration importance',
+      r: 'Temperature decreased from peak to ' + (v.temp || 'current reading') + '°C after antipyretic administration and cooling measures. ' + (v.hr ? 'Heart rate ' + v.hr + ' bpm.' : '') + ' Skin less flushed; diaphoresis continues. Patient verbalized subjective improvement in comfort level. Hydration maintained — oral fluids and IV infusing. Physician updated on temperature trend.'
+    };
+  },
+
+  dehydration: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Dehydration',
+      f: 'Deficient Fluid Volume related to ' + (dx || 'dehydration') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I feel very thirsty and weak, I have not been drinking much') + '"\nO: ' + vl + '\n   Skin turgor: poor (tenting present)\n   Mucous membranes: dry, lips cracked\n   Eyes: sunken appearance\n   Urine: concentrated, dark yellow; output decreased\n   Orthostatic hypotension: assessed — result documented',
+      a: '• IV access established; IV fluid resuscitation initiated as ordered (NS / LR / D5LR)\n• Oral fluid intake encouraged as tolerated; accurate I&O monitored\n• Vital signs monitored q4h; orthostatic BP/HR assessed\n• Weight recorded daily at same time on same scale\n• Skin turgor and mucous membrane hydration assessed q8h\n• Electrolytes monitored; replacements administered as ordered\n• Underlying cause of fluid loss addressed per order\n• Attending physician notified of fluid deficit and lab values\n• Patient educated on importance of adequate fluid intake and signs of dehydration',
+      r: 'Patient tolerating IV fluid resuscitation and oral intake. Urine output improving — color lighter. Skin turgor slightly improved; mucous membranes less dry. Vital signs ' + vl + ' — stable. Patient verbalized understanding of hydration importance. IV fluids continuing per order; reassessment ongoing.'
+    };
+  },
+
+  trauma: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'Trauma / Injury / Fall',
+      f: 'Acute Pain / Risk for Injury related to ' + (dx || 'trauma / fall') + (cc ? ' as evidenced by ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I fell and hit my head, my arm is very painful') + '"\nO: ' + vl + '\n   LOC: ' + (v.gcs ? 'GCS ' + v.gcs : 'assessed and documented') + '\n   Injury site: laceration / contusion / deformity noted; area documented\n   Pain at injury site: present; rated on pain scale\n   Neurological: pupils equal and reactive; motor and sensory function assessed\n   Skin: abrasions noted at [site]; bleeding controlled\n   X-ray / CT scan: ordered / results pending',
+      a: '• Primary trauma assessment completed (ABCs)\n• Cervical spine immobilized / c-collar applied as indicated\n• Vital signs monitored q1–2h; neurovascular checks performed q2h on affected extremity\n• Imaging facilitated as ordered (X-ray, CT scan, MRI)\n• IV access established; IV fluids administered as ordered\n• Pain assessed and analgesics administered as ordered\n• Wound care performed: wound cleansed, irrigated, sutured / dressed as ordered\n• Tetanus prophylaxis administered as ordered (if indicated)\n• Attending physician notified of injury severity and neurological status\n• Fall risk assessment completed; fall prevention protocol reinforced\n• Side rails up; bed in lowest position; call light within reach; non-slip footwear applied\n• Patient and family educated on injury management and fall prevention',
+      r: 'Patient neurologically intact; GCS ' + (v.gcs || 'documented') + '. ' + (v.bp ? 'BP ' + v.bp + ' mmHg — hemodynamically stable.' : 'Hemodynamic monitoring ongoing.') + ' Pain managed; analgesic administered without adverse effects. Wound care completed; dressing intact. Fall prevention measures in place. Patient and family verbalized understanding of safety precautions and follow-up plan.'
+    };
+  },
+
+  general: function(dx, cc, v) {
+    var vl = vitalsLine(v);
+    return {
+      label: 'General / Other',
+      f: 'Altered Health Status related to ' + (dx || 'medical condition') + (cc ? ' as evidenced by patient\'s complaint of ' + cc : ''),
+      d: 'S: Patient verbalized "' + (cc || 'I am not feeling well and I need medical attention') + '"\nO: ' + vl + '\n   General appearance: appears ill / distressed (as observed)\n   Skin: assessed — color, temperature, turgor documented\n   Mental status: alert and oriented x3 (or as assessed)\n   Physical examination findings: as documented per body system',
+      a: '• Comprehensive assessment performed; findings documented\n• Vital signs monitored q4h or per physician order\n• IV access established; IV fluids and medications administered as ordered\n• Medications administered as ordered; drug, dose, route, and time documented\n• Attending physician notified of patient condition and assessment findings\n• Labs and diagnostic tests facilitated as ordered\n• Comfort measures implemented; patient positioned for comfort\n• Intake and output monitored\n• Patient and family educated on diagnosis, treatment plan, and expected outcomes\n• Safety measures maintained: side rails up, call light within reach, bed in lowest position',
+      r: 'Patient tolerated interventions without complications. Vital signs ' + vl + ' — stable. Medications administered as ordered; no adverse reactions observed. Patient verbalized understanding of treatment plan. Attending physician updated on clinical progress. Continue to monitor and reassess per protocol.'
+    };
+  }
+};
+
+function autoFillFDAR() {
+  var dx = document.getElementById('diagnosisField').value.trim();
+  var cc = document.getElementById('chiefComplaint').value.trim();
+
+  if (!dx && !cc) {
+    showToast('Enter a Medical Diagnosis or Chief Complaint first', true);
+    return;
+  }
+
+  var v = getVitals();
+  var text = (dx + ' ' + cc).toLowerCase();
+  var condKey = detectCondition(text);
+  var template = TEMPLATES[condKey](dx, cc, v);
+
+  document.getElementById('fField').value = template.f;
+  document.getElementById('dField').value = template.d;
+  document.getElementById('aField').value = template.a;
+  document.getElementById('rField').value = template.r;
+
+  var tag = document.getElementById('detectedTag');
+  document.getElementById('detectedLabel').textContent = 'Detected: ' + template.label + ' — review and edit as needed';
+  tag.classList.add('visible');
+
+  showToast('✓ FDAR auto-filled — review and edit as needed');
+}
+
+function getVitals() {
+  return {
+    bp:   document.getElementById('vBP').value.trim(),
+    temp: document.getElementById('vTemp').value.trim(),
+    hr:   document.getElementById('vHR').value.trim(),
+    rr:   document.getElementById('vRR').value.trim(),
+    o2:   document.getElementById('vO2').value.trim(),
+    gcs:  document.getElementById('vGCS').value.trim()
+  };
+}
+
+function vitalsLine(v) {
+  var parts = [];
+  if (v.bp)   parts.push('BP ' + v.bp + ' mmHg');
+  if (v.temp) parts.push('Temp ' + v.temp + '°C');
+  if (v.hr)   parts.push('HR ' + v.hr + ' bpm');
+  if (v.rr)   parts.push('RR ' + v.rr + '/min');
+  if (v.o2)   parts.push('O2 Sat ' + v.o2 + '%');
+  if (v.gcs)  parts.push('GCS ' + v.gcs);
+  return parts.length ? parts.join(', ') : 'Vital signs as charted';
+}
+
+function has(text, words) {
+  return words.some(function(w) { return text.indexOf(w) !== -1; });
+}
+
+function detectCondition(text) {
+  if (has(text, ['pneumonia','bronchitis','copd','asthma','respiratory','dyspnea','shortness of breath','sob','tuberculosis',' tb ','pleural','effusion','pneumothorax','pulmonary','lung infection','upper respiratory','uri','lrti'])) return 'respiratory';
+  if (has(text, ['chest pain','cardiac','heart failure','chf','myocardial','infarction',' mi ','acs','angina','coronary','arrhythmia','atrial fib','palpitation','congestive'])) return 'cardiac';
+  if (has(text, ['hypertension','htn','elevated blood pressure','high blood pressure','hypertensive crisis'])) return 'hypertension';
+  if (has(text, ['stroke','cva','tia','cerebrovascular','hemiplegia','hemiparesis','facial droop','slurred speech','aphasia'])) return 'stroke';
+  if (has(text, ['seizure','epilepsy','convulsion','status epilepticus'])) return 'seizure';
+  if (has(text, ['diabetes','type 1 dm','type 2 dm','hyperglycemia','hypoglycemia','dka','diabetic ketoacidosis','hhs'])) return 'diabetes';
+  if (has(text, ['appendicitis','acute abdomen','peritonitis','bowel obstruction','ileus'])) return 'abdominal';
+  if (has(text, ['gi bleed','gastrointestinal bleed','hematemesis','melena','hematochezia','peptic ulcer'])) return 'gi_bleed';
+  if (has(text, ['pancreatitis','nausea','vomiting','gastroenteritis','diarrhea','gastritis'])) return 'gi_general';
+  if (has(text, ['uti','urinary tract','urinary infection','pyelonephritis','dysuria'])) return 'uti';
+  if (has(text, ['renal failure','kidney failure','ckd','acute kidney','aki','dialysis','oliguria','anuria'])) return 'renal';
+  if (has(text, ['sepsis','septicemia','bacteremia','systemic infection','sirs'])) return 'sepsis';
+  if (has(text, ['cellulitis','wound infection','abscess','soft tissue infection'])) return 'wound_infection';
+  if (has(text, ['fracture','post-op','post op','post operative','surgical','orthopedic','arthroplasty','amputation'])) return 'postop';
+  if (has(text, ['anemia','low hemoglobin','transfusion'])) return 'anemia';
+  if (has(text, ['fever','febrile','hyperthermia','pyrexia'])) return 'fever';
+  if (has(text, ['dehydration','fluid deficit','hypovolemia'])) return 'dehydration';
+  if (has(text, ['fall','injury','trauma','head injury','laceration','contusion'])) return 'trauma';
+  if (has(text, ['pain management','chronic pain','acute pain'])) return 'pain';
+  return 'general';
+}
+
+// ─── SAVE ───
+function saveEntry() {
+  var name = document.getElementById('patientName').value.trim();
+  var f = document.getElementById('fField').value.trim();
+  var d = document.getElementById('dField').value.trim();
+  var a = document.getElementById('aField').value.trim();
+  var r = document.getElementById('rField').value.trim();
+
+  if (!name) { showToast('Please enter the patient name', true); return; }
+  if (!f && !d && !a && !r) { showToast('Please fill in at least one FDAR field', true); return; }
+
+  var entry = {
+    id: Date.now().toString(),
+    patient: name,
+    room: document.getElementById('roomBed').value.trim(),
+    datetime: document.getElementById('entryDatetime').value,
+    shift: document.getElementById('shift').value,
+    diagnosis: document.getElementById('diagnosisField').value.trim(),
+    complaint: document.getElementById('chiefComplaint').value.trim(),
+    vitals: getVitals(),
+    f: f, d: d, a: a, r: r,
+    created: new Date().toISOString()
+  };
+
+  var entries = getEntries();
+  entries.push(entry);
+  saveEntries(entries);
+  updateCount();
+  showToast('✓ FDAR entry saved!');
+  clearForm();
+
+  var now = new Date();
+  document.getElementById('entryDatetime').value = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function clearForm() {
+  ['patientName','roomBed','diagnosisField','chiefComplaint','vBP','vTemp','vHR','vRR','vO2','vGCS','fField','dField','aField','rField'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('detectedTag').classList.remove('visible');
+}
+
+// ─── RECORDS ───
+function renderRecords() {
+  var entries = getEntries();
+  var q = document.getElementById('searchInput').value.toLowerCase();
+  if (q) entries = entries.filter(function(e) {
+    return (e.patient||'').toLowerCase().includes(q) || (e.room||'').toLowerCase().includes(q) || (e.diagnosis||'').toLowerCase().includes(q);
+  });
+  entries.sort(function(a, b) { return sortDesc ? new Date(b.created) - new Date(a.created) : new Date(a.created) - new Date(b.created); });
+
+  var list = document.getElementById('entriesList');
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty-state"><div class="big">📋</div><div class="msg">No entries found</div><div class="sub">Create a new FDAR entry to get started</div></div>';
+    return;
+  }
+  list.innerHTML = entries.map(function(e) {
+    return '<div class="entry-card" onclick="openModal(\'' + e.id + '\')">' +
+      '<div class="entry-card-head">' +
+        '<div>' +
+          '<div class="entry-patient">' + esc(e.patient) + '</div>' +
+          (e.diagnosis ? '<div class="entry-diagnosis">' + esc(e.diagnosis) + '</div>' : '') +
+          '<div class="entry-meta">' + esc(e.room || '—') + ' · ' + (e.datetime ? formatDT(e.datetime) : '—') + ' · ' + esc(e.shift || '') + '</div>' +
+        '</div>' +
+        '<div class="entry-actions">' +
+          '<button class="btn-icon print" onclick="event.stopPropagation();printEntry(\'' + e.id + '\')">🖨</button>' +
+          '<button class="btn-icon" onclick="event.stopPropagation();deleteEntry(\'' + e.id + '\')">🗑</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="entry-fdar-strip">' +
+        '<div class="strip-item f"><div class="strip-letter">F</div><div class="strip-preview">' + esc(e.f || '—') + '</div></div>' +
+        '<div class="strip-item d"><div class="strip-letter">D</div><div class="strip-preview">' + esc(e.d || '—') + '</div></div>' +
+        '<div class="strip-item a"><div class="strip-letter">A</div><div class="strip-preview">' + esc(e.a || '—') + '</div></div>' +
+        '<div class="strip-item r"><div class="strip-letter">R</div><div class="strip-preview">' + esc(e.r || '—') + '</div></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleSort() { sortDesc = !sortDesc; renderRecords(); }
+
+// ─── MODAL ───
+function openModal(id) {
+  var e = getEntries().find(function(x) { return x.id === id; });
+  if (!e) return;
+
+  document.getElementById('modalPatient').textContent = e.patient;
+  document.getElementById('modalDiagnosis').textContent = e.diagnosis || '';
+  document.getElementById('modalMeta').textContent = (e.room || '—') + ' · ' + (e.datetime ? formatDT(e.datetime) : '—') + ' · ' + (e.shift || '');
+
+  var v = e.vitals || {};
+  var chips = [['BP',v.bp],['Temp',v.temp ? v.temp+'°C' : ''],['HR',v.hr ? v.hr+' bpm' : ''],['RR',v.rr ? v.rr+'/min' : ''],['O2',v.o2 ? v.o2+'%' : ''],['GCS',v.gcs]].filter(function(c){return !!c[1];});
+  var vitalsEl = document.getElementById('modalVitals');
+  vitalsEl.style.display = chips.length ? '' : 'none';
+  vitalsEl.innerHTML = chips.map(function(c) { return '<div class="vital-chip">' + c[0] + ' <span>' + esc(c[1]) + '</span></div>'; }).join('');
+
+  document.getElementById('modalBody').innerHTML =
+    [['f','F','FOCUS'],['d','D','DATA'],['a','A','ACTION'],['r','R','RESPONSE']].map(function(item) {
+      var val = e[item[0]];
+      var empty = !val || !val.trim();
+      return '<div class="modal-fdar-block mf-block ' + item[0] + '">' +
+        '<div class="modal-fdar-head"><div class="modal-fdar-letter">' + item[1] + '</div><div class="modal-fdar-title">' + item[2] + '</div></div>' +
+        '<div class="modal-fdar-content' + (empty ? ' modal-fdar-empty' : '') + '">' + (empty ? 'No entry.' : esc(val)) + '</div>' +
+      '</div>';
+    }).join('') +
+    '<div class="modal-actions">' +
+      '<button class="modal-btn delete" onclick="deleteEntry(\'' + id + '\')">🗑 Delete</button>' +
+      '<button class="modal-btn close" onclick="closeModal()">✕ Close</button>' +
+    '</div>';
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOnBg(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+function deleteEntry(id) {
+  if (!confirm('Delete this entry?')) return;
+  saveEntries(getEntries().filter(function(e) { return e.id !== id; }));
+  updateCount(); closeModal(); renderRecords();
+  showToast('Entry deleted.');
+}
+
+function printEntry(id) { openModal(id); setTimeout(function() { window.print(); }, 300); }
+
+// ─── HELPERS ───
+function updateCount() {
+  var n = getEntries().length;
+  document.getElementById('countBadge').textContent = n + (n === 1 ? ' entry' : ' entries');
+}
+function formatDT(dt) {
+  var d = new Date(dt);
+  return d.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showToast(msg, isError) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '') + ' show';
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+</script>
+</body>
+</html>
