@@ -335,6 +335,15 @@ body {
 .mf-block.r .modal-fdar-letter { color: var(--R); }
 .mf-block.r .modal-fdar-title { color: var(--R); }
 
+/* MODAL CLINICAL EXTRA (Lab + Diagnostic) */
+.modal-clinical-extra { display: flex; flex-direction: column; gap: 0; }
+.modal-extra-row { padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+.modal-extra-label {
+  font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); margin-bottom: 4px;
+}
+.modal-extra-value { font-size: 12.5px; line-height: 1.55; color: var(--text); white-space: pre-wrap; }
+
 /* MODAL PHYSICIAN COMM */
 .modal-comm-block { border-radius: 8px; border: 1px solid var(--orange-border); overflow: hidden; }
 .modal-comm-head {
@@ -411,6 +420,9 @@ body {
   .modal-fdar-head { background: #f5f5f5 !important; }
   .modal-fdar-content { background: white; color: black; border-color: #ccc; }
   .modal-fdar-letter, .modal-fdar-title { color: black !important; }
+  .modal-extra-row { background: #f9f9f9; border-color: #ccc; }
+  .modal-extra-label { color: #666; }
+  .modal-extra-value { color: black; }
   .modal-comm-head { background: #fff3e0 !important; }
   .modal-comm-content { background: #fffaf5; color: black; border-color: #f0c080; }
   .modal-comm-title { color: #b45309 !important; }
@@ -471,12 +483,20 @@ body {
 
     <div class="clinical-block">
       <div class="field">
-        <label>Medical Diagnosis</label>
+        <label>Admitting Diagnosis</label>
         <textarea id="diagnosisField" rows="2" placeholder="e.g. Community-acquired pneumonia, right lower lobe; Type 2 Diabetes Mellitus with hypertension..."></textarea>
       </div>
       <div class="field">
         <label>Chief Complaint</label>
         <input type="text" id="chiefComplaint" placeholder="e.g. Difficulty breathing, fever for 3 days, chest pain on inspiration">
+      </div>
+      <div class="field">
+        <label>Laboratory Results</label>
+        <textarea id="labResults" rows="3" placeholder="e.g. CBC: WBC 14.2 (↑), Hgb 10.1 (↓), Plt 210&#10;BMP: Na 138, K 3.8, Creatinine 1.2, BUN 22&#10;Blood culture: pending | Urinalysis: WBC 3+, bacteria 2+"></textarea>
+      </div>
+      <div class="field">
+        <label>Diagnostic Information</label>
+        <textarea id="diagnosticInfo" rows="3" placeholder="e.g. CXR (05/05/26): Right lower lobe infiltrate consistent with pneumonia&#10;ECG: Normal sinus rhythm, no ST changes&#10;CT Abdomen: No acute findings | Pending: MRI Brain, Echo"></textarea>
       </div>
       <div>
         <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Vital Signs</div>
@@ -655,6 +675,7 @@ body {
       <button class="modal-close" onclick="closeModal()">✕ Close</button>
     </div>
     <div class="modal-vitals-strip" id="modalVitals"></div>
+    <div class="modal-clinical-extra" id="modalClinicalExtra"></div>
     <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
@@ -1054,7 +1075,7 @@ function autoFillFDAR() {
   var cc = document.getElementById('chiefComplaint').value.trim();
 
   if (!dx && !cc) {
-    showToast('Enter a Medical Diagnosis or Chief Complaint first', true);
+    showToast('Enter an Admitting Diagnosis or Chief Complaint first', true);
     return;
   }
 
@@ -1095,6 +1116,8 @@ function saveEntry() {
     shift: document.getElementById('shift').value,
     diagnosis: document.getElementById('diagnosisField').value.trim(),
     complaint: document.getElementById('chiefComplaint').value.trim(),
+    labResults: document.getElementById('labResults').value.trim(),
+    diagnosticInfo: document.getElementById('diagnosticInfo').value.trim(),
     vitals: getVitals(),
     f: f, d: d, a: a, r: r,
     comm: document.getElementById('commField').value.trim(),
@@ -1113,7 +1136,7 @@ function saveEntry() {
 }
 
 function clearForm() {
-  ['patientName','roomBed','diagnosisField','chiefComplaint',
+  ['patientName','roomBed','diagnosisField','chiefComplaint','labResults','diagnosticInfo',
    'vBP','vTemp','vHR','vRR','vO2','vGCS',
    'fField','dField','aField','rField','commField'].forEach(function(id) {
     document.getElementById(id).value = '';
@@ -1178,6 +1201,17 @@ function openModal(id) {
   var vitalsEl = document.getElementById('modalVitals');
   vitalsEl.style.display = chips.length ? '' : 'none';
   vitalsEl.innerHTML = chips.map(function(c) { return '<div class="vital-chip">' + c[0] + ' <span>' + esc(c[1]) + '</span></div>'; }).join('');
+
+  var extraEl = document.getElementById('modalClinicalExtra');
+  var extraRows = '';
+  if (e.labResults && e.labResults.trim()) {
+    extraRows += '<div class="modal-extra-row"><div class="modal-extra-label">🧪 Laboratory Results</div><div class="modal-extra-value">' + esc(e.labResults) + '</div></div>';
+  }
+  if (e.diagnosticInfo && e.diagnosticInfo.trim()) {
+    extraRows += '<div class="modal-extra-row"><div class="modal-extra-label">🩻 Diagnostic Information</div><div class="modal-extra-value">' + esc(e.diagnosticInfo) + '</div></div>';
+  }
+  extraEl.style.display = extraRows ? '' : 'none';
+  extraEl.innerHTML = extraRows;
 
   var fdarHtml = [['f','F','FOCUS'],['d','D','DATA'],['a','A','ACTION'],['r','R','RESPONSE']].map(function(item) {
     var val = e[item[0]];
